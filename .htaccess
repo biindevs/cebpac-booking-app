@@ -1,0 +1,15 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /cebfuck/cebpac-booking-app/
+    
+    # Redirect root URL to public/index.php
+    RewriteRule ^$ public/index.php [L]
+    
+    # If the request is not a file or directory, route to public/index.php
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ public/index.php?url=$1 [L,QSA]
+</IfModule>
+
+# Enable directory browsing prevention
+Options -Indexes

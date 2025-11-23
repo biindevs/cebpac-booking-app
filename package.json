@@ -1,0 +1,14 @@
+{
+  "name": "cebpac-booking-app",
+  "description": "Cebu Pacific Flight Booking System",
+  "version": "1.0.0",
+  "engines": {
+    "php": "8.0.25"
+  },
+  "keywords": [
+    "php",
+    "booking",
+    "flights",
+    "cebu-pacific"
+  ]
+}

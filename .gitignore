@@ -1,0 +1,15 @@
+*.log
+*.sql.bak
+.DS_Store
+Thumbs.db
+node_modules/
+vendor/
+.env
+.env.local
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+dist/
+build/
