@@ -1,0 +1,58 @@
+<?php
+/**
+ * Database Configuration File - EXAMPLE
+ * 
+ * INSTRUCTIONS FOR HOSTINGER:
+ * 1. Copy this file to db.php (remove .example)
+ * 2. Update the values below with your Hostinger database credentials
+ * 3. Never commit db.php to git (it's in .gitignore)
+ * 
+ * WHERE TO FIND YOUR HOSTINGER DATABASE CREDENTIALS:
+ * - Log into Hostinger hPanel
+ * - Go to "Databases" → "MySQL Databases"
+ * - You'll see: Database Name, Username, Host, and Password
+ */
+
+// =====================================================
+// HOSTINGER DATABASE SETTINGS
+// =====================================================
+
+// Database Host (usually 'localhost' on Hostinger)
+define('DB_HOST', 'localhost');
+
+// Database Username (from Hostinger MySQL Databases)
+define('DB_USER', 'your_database_username');
+
+// Database Password (from Hostinger MySQL Databases)
+define('DB_PASS', 'your_database_password');
+
+// Database Name (from Hostinger MySQL Databases)
+define('DB_NAME', 'your_database_name');
+
+// Database Port (usually 3306)
+define('DB_PORT', 3306);
+
+// =====================================================
+// DO NOT MODIFY BELOW THIS LINE
+// =====================================================
+
+// Create connection using MySQLi
+$conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME, DB_PORT);
+
+// Check connection
+if ($conn->connect_error) {
+    die("Database Connection Failed: " . $conn->connect_error);
+}
+
+// Set charset to utf8mb4
+$conn->set_charset("utf8mb4");
+
+// Optional: Disable warnings in production
+$conn->options(MYSQLI_OPT_INT_AND_FLOAT_NATIVE, 1);
+
+// Global database connection variable
+global $db;
+$db = $conn;
+
+?>
+

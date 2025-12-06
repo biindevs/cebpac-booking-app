@@ -1,8 +1,8 @@
     </div>
-    <footer class="bg-dark text-white text-center py-4 mt-auto">
-        <div class="container-fluid">
-            <p class="mb-0">&copy; 2025 Cebu Pacific Booking Tracker. All rights reserved.</p>
-            <small>Manage your flight bookings efficiently</small>
+    <footer class="app-footer text-center mt-auto">
+        <div class="container">
+            <p class="fw-semibold mb-1">&copy; 2025 Cebu Pacific Booking Tracker</p>
+            <small>Streamlined tools to stay on top of every itinerary</small>
         </div>
     </footer>
 
@@ -10,9 +10,9 @@
     <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title">Confirm Delete</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <p>Are you sure you want to delete <strong id="deleteItemName"></strong>?</p>

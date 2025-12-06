@@ -1,0 +1,42 @@
+# Database Configuration (contains sensitive credentials)
+config/db.php
+
+# Uploaded Files (user-generated content)
+public/uploads/*
+!public/uploads/.gitkeep
+
+# Composer
+/vendor/
+composer.phar
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# OS files
+Thumbs.db
+.DS_Store
+

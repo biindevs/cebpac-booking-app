@@ -65,7 +65,14 @@ if (!empty($booking['passengers_info'])) {
                     <div class="col-md-6">
                         <strong>Status:</strong>
                         <p>
-                            <span class="badge bg-<?php echo $booking['status'] === 'confirmed' ? 'success' : ($booking['status'] === 'cancelled' ? 'danger' : 'warning'); ?>">
+                            <?php 
+                            $statusClass = 'bg-secondary';
+                            if ($booking['status'] === 'confirmed') $statusClass = 'bg-success';
+                            elseif ($booking['status'] === 'pending') $statusClass = 'bg-warning';
+                            elseif ($booking['status'] === 'cancelled') $statusClass = 'bg-danger';
+                            elseif ($booking['status'] === 'completed') $statusClass = 'bg-primary';
+                            ?>
+                            <span class="badge <?php echo $statusClass; ?>">
                                 <?php echo ucfirst(htmlspecialchars($booking['status'])); ?>
                             </span>
                         </p>
@@ -167,9 +174,9 @@ if (!empty($booking['passengers_info'])) {
                 <div class="mb-3">
                     <strong>Itinerary PDF:</strong>
                     <p>
-                        <a href="../../public/uploads/<?php echo htmlspecialchars($booking['itinerary_pdf']); ?>" target="_blank" class="btn btn-primary btn-sm">
+                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#pdfModal" onclick="loadPDF('../../public/uploads/<?php echo htmlspecialchars($booking['itinerary_pdf']); ?>')">
                             📄 View PDF
-                        </a>
+                        </button>
                     </p>
                 </div>
                 <?php endif; ?>
@@ -197,5 +204,29 @@ if (!empty($booking['passengers_info'])) {
         </div>
     </div>
 </div>
+
+<!-- PDF Modal -->
+<div class="modal fade" id="pdfModal" tabindex="-1" aria-labelledby="pdfModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pdfModalLabel">Itinerary PDF</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0" style="height: 80vh;">
+                <iframe id="pdfFrame" src="" style="width: 100%; height: 100%; border: none;"></iframe>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function loadPDF(pdfUrl) {
+    document.getElementById('pdfFrame').src = pdfUrl;
+}
+</script>
 
 <?php include "../templates/footer.php"; ?>

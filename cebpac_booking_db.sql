@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS bookings (
     return_date DATE,
     number_of_passengers INT NOT NULL DEFAULT 1,
     total_price DECIMAL(10, 2) NOT NULL,
-    status ENUM('confirmed', 'pending', 'cancelled') DEFAULT 'pending',
+    status ENUM('confirmed', 'pending', 'cancelled', 'completed') DEFAULT 'pending',
     notes TEXT,
     booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -58,12 +58,12 @@ INSERT INTO accounts (email, full_name, phone, address, status) VALUES
 
 -- Insert sample bookings
 INSERT INTO bookings (account_id, booking_reference, departure_city, arrival_city, departure_date, return_date, number_of_passengers, total_price, status, notes) VALUES
-(1, 'BK001', 'Cebu (CEB)', 'Manila (MNL)', '2025-03-15', '2025-03-18', 2, 8500.00, 'confirmed', 'Flight confirmed. 2 adult passengers with standard baggage allowance.'),
+(1, 'BK001', 'Cebu (CEB)', 'Manila (MNL)', '2025-03-15', '2025-03-18', 2, 8500.00, 'completed', 'Flight completed. 2 adult passengers with standard baggage allowance.'),
 (1, 'BK002', 'Cebu (CEB)', 'Davao (DVO)', '2025-04-05', NULL, 1, 3500.00, 'confirmed', 'One-way flight for business trip.'),
 (1, 'BK003', 'Cebu (CEB)', 'Singapore (SIN)', '2025-05-22', '2025-05-29', 4, 18900.00, 'pending', 'Family vacation. Waiting for payment confirmation.'),
 (1, 'BK004', 'Manila (MNL)', 'Cebu (CEB)', '2025-06-10', NULL, 3, 10500.00, 'cancelled', 'Cancelled due to schedule conflict.'),
 (1, 'BK005', 'Cebu (CEB)', 'Manila (MNL)', '2025-07-18', NULL, 2, 7200.00, 'confirmed', 'Return flight to Manila for conference.'),
-(2, 'BK006', 'Manila (MNL)', 'Cebu (CEB)', '2025-03-20', '2025-03-27', 3, 12750.00, 'confirmed', 'Family trip to Cebu.'),
+(2, 'BK006', 'Manila (MNL)', 'Cebu (CEB)', '2025-03-20', '2025-03-27', 3, 12750.00, 'completed', 'Family trip to Cebu.'),
 (2, 'BK007', 'Cebu (CEB)', 'Iloilo (ILO)', '2025-04-12', NULL, 2, 5400.00, 'pending', 'Pending confirmation from airline.'),
 (2, 'BK008', 'Cebu (CEB)', 'Davao (DVO)', '2025-05-05', NULL, 1, 3200.00, 'confirmed', 'Solo travel for work.'),
 (2, 'BK009', 'Manila (MNL)', 'Palawan (PPS)', '2025-06-15', '2025-06-22', 4, 16800.00, 'confirmed', 'Summer vacation with family.'),
@@ -71,7 +71,7 @@ INSERT INTO bookings (account_id, booking_reference, departure_city, arrival_cit
 (3, 'BK011', 'Davao (DVO)', 'Manila (MNL)', '2025-03-25', NULL, 1, 4800.00, 'cancelled', 'Cancelled - account inactive.'),
 (3, 'BK012', 'Davao (DVO)', 'Cebu (CEB)', '2025-04-30', NULL, 2, 6200.00, 'pending', 'Pending for inactive account.'),
 (3, 'BK013', 'Manila (MNL)', 'Davao (DVO)', '2025-05-15', NULL, 3, 12600.00, 'pending', 'Pending confirmation.'),
-(4, 'BK014', 'Makati (MNL)', 'Cebu (CEB)', '2025-03-10', '2025-03-17', 5, 21000.00, 'confirmed', 'Corporate team building trip.'),
+(4, 'BK014', 'Makati (MNL)', 'Cebu (CEB)', '2025-03-10', '2025-03-17', 5, 21000.00, 'completed', 'Corporate team building trip.'),
 (4, 'BK015', 'Cebu (CEB)', 'Singapore (SIN)', '2025-04-20', '2025-04-27', 2, 19600.00, 'confirmed', 'Honeymoon trip.'),
 (4, 'BK016', 'Manila (MNL)', 'Hong Kong (HKG)', '2025-06-05', '2025-06-10', 1, 18500.00, 'pending', 'Business meeting in Hong Kong.'),
 (4, 'BK017', 'Cebu (CEB)', 'Manila (MNL)', '2025-07-25', NULL, 3, 10500.00, 'confirmed', 'Family visit to Manila.'),
@@ -94,6 +94,7 @@ SELECT
     SUM(CASE WHEN b.status = 'confirmed' THEN 1 ELSE 0 END) as confirmed_bookings,
     SUM(CASE WHEN b.status = 'pending' THEN 1 ELSE 0 END) as pending_bookings,
     SUM(CASE WHEN b.status = 'cancelled' THEN 1 ELSE 0 END) as cancelled_bookings,
+    SUM(CASE WHEN b.status = 'completed' THEN 1 ELSE 0 END) as completed_bookings,
     SUM(b.total_price) as total_spent,
     a.registration_date
 FROM accounts a

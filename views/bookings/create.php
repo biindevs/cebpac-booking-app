@@ -166,6 +166,7 @@ function sanitize($data) {
                                 <option value="confirmed">Confirmed</option>
                                 <option value="pending" selected>Pending</option>
                                 <option value="cancelled">Cancelled</option>
+                                <option value="completed">Completed</option>
                             </select>
                         </div>
                     </div>

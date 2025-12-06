@@ -174,6 +174,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_delete'])) {
                                 <option value="confirmed" <?php echo $booking['status'] === 'confirmed' ? 'selected' : ''; ?>>Confirmed</option>
                                 <option value="pending" <?php echo $booking['status'] === 'pending' ? 'selected' : ''; ?>>Pending</option>
                                 <option value="cancelled" <?php echo $booking['status'] === 'cancelled' ? 'selected' : ''; ?>>Cancelled</option>
+                                <option value="completed" <?php echo $booking['status'] === 'completed' ? 'selected' : ''; ?>>Completed</option>
                             </select>
                         </div>
                     </div>
@@ -190,7 +191,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_delete'])) {
                         <?php if (!empty($booking['itinerary_pdf'])): ?>
                             <div class="mt-2">
                                 <strong>Current PDF:</strong>
-                                <a href="../../public/uploads/<?php echo htmlspecialchars($booking['itinerary_pdf']); ?>" target="_blank" class="btn btn-sm btn-info">📄 View Current PDF</a>
+                                <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#pdfModal" onclick="loadPDF('../../public/uploads/<?php echo htmlspecialchars($booking['itinerary_pdf']); ?>')">
+                                    📄 View Current PDF
+                                </button>
                             </div>
                         <?php endif; ?>
                     </div>
@@ -234,6 +237,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_delete'])) {
                     if ($booking['status'] === 'confirmed') $statusClass = 'bg-success';
                     elseif ($booking['status'] === 'pending') $statusClass = 'bg-warning';
                     elseif ($booking['status'] === 'cancelled') $statusClass = 'bg-danger';
+                    elseif ($booking['status'] === 'completed') $statusClass = 'bg-primary';
                     ?>
                     <span class="badge <?php echo $statusClass; ?>"><?php echo ucfirst($booking['status']); ?></span>
                 </p>
@@ -296,7 +300,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_delete'])) {
     
     // Initialize on page load
     generatePassengerFields();
+    
+    // Load PDF in modal
+    function loadPDF(pdfUrl) {
+        document.getElementById('pdfFrame').src = pdfUrl;
+    }
 </script>
+
+<!-- PDF Modal -->
+<div class="modal fade" id="pdfModal" tabindex="-1" aria-labelledby="pdfModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pdfModalLabel">Itinerary PDF</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0" style="height: 80vh;">
+                <iframe id="pdfFrame" src="" style="width: 100%; height: 100%; border: none;"></iframe>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <?php endif; ?>
 

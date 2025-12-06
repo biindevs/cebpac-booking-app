@@ -32,6 +32,33 @@ class Booking {
     }
 
     /**
+     * Automatically promote past trips to completed.
+     * - One-way: departure date already passed
+     * - Round-trip: return date already passed
+     */
+    public function refreshCompletedStatuses() {
+        $query = "UPDATE {$this->table}
+                  SET status = 'completed', last_updated = NOW()
+                  WHERE status = 'confirmed'
+                    AND (
+                        (
+                            (return_date IS NULL OR return_date = '')
+                            AND departure_date < CURDATE()
+                        )
+                        OR
+                        (
+                            (return_date IS NOT NULL AND return_date <> '')
+                            AND return_date < CURDATE()
+                        )
+                    )";
+    
+        if (!$this->conn->query($query)) {
+            throw new Exception('Failed to refresh completed statuses: ' . $this->conn->error);
+        }
+    }
+    
+
+    /**
      * Get all bookings
      */
     public function getAll() {
@@ -71,11 +98,15 @@ class Booking {
 
     /**
      * Get bookings by account ID
+     * Sorted to prioritize upcoming departure dates (future dates first, then past dates)
      */
     public function getByAccountId($account_id) {
         $query = "SELECT * FROM " . $this->table . " 
                   WHERE account_id = ?
-                  ORDER BY departure_date DESC";
+                  ORDER BY 
+                      (departure_date >= CURDATE()) DESC,
+                      IF(departure_date >= CURDATE(), departure_date, '9999-12-31') ASC,
+                      IF(departure_date < CURDATE(), departure_date, '0000-01-01') DESC";
         $stmt = $this->conn->prepare($query);
 
         if (!$stmt) {
@@ -92,53 +123,87 @@ class Booking {
      * Create new booking
      */
     public function create($account_id, $booking_reference, $departure_city, $arrival_city, 
-                          $departure_date, $return_date, $number_of_passengers, $total_price, $status, $notes, $itinerary_pdf = null, $passengers_info = null) {
+            $departure_date, $return_date, $number_of_passengers, $total_price, $status, $notes, $itinerary_pdf = null, $passengers_info = null) {
+
+        // FIX: convert empty return dates to NULL
+        $return_date = empty($return_date) ? NULL : $return_date;
+
         $query = "INSERT INTO " . $this->table . " 
-                  (account_id, booking_reference, departure_city, arrival_city, departure_date, 
-                   return_date, number_of_passengers, total_price, status, notes, itinerary_pdf, passengers_info) 
-                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        
+        (account_id, booking_reference, departure_city, arrival_city, departure_date, 
+        return_date, number_of_passengers, total_price, status, notes, itinerary_pdf, passengers_info) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
         $stmt = $this->conn->prepare($query);
 
         if (!$stmt) {
-            throw new Exception("Prepare failed: " . $this->conn->error);
+        throw new Exception("Prepare failed: " . $this->conn->error);
         }
 
-        $stmt->bind_param("isssssidssss", $account_id, $booking_reference, $departure_city, $arrival_city,
-                         $departure_date, $return_date, $number_of_passengers, $total_price, $status, $notes, $itinerary_pdf, $passengers_info);
+        $stmt->bind_param(
+        "isssssidssss",
+        $account_id,
+        $booking_reference,
+        $departure_city,
+        $arrival_city,
+        $departure_date,
+        $return_date,
+        $number_of_passengers,
+        $total_price,
+        $status,
+        $notes,
+        $itinerary_pdf,
+        $passengers_info
+        );
 
         if ($stmt->execute()) {
-            return $this->conn->insert_id;
+        return $this->conn->insert_id;
         } else {
-            throw new Exception("Insert failed: " . $stmt->error);
+        throw new Exception("Insert failed: " . $stmt->error);
         }
-    }
+        }
 
     /**
      * Update booking
      */
-    public function update($id, $departure_city, $arrival_city, $departure_date, $return_date, 
-                          $number_of_passengers, $total_price, $status, $notes, $itinerary_pdf = null, $passengers_info = null) {
+            public function update($id, $departure_city, $arrival_city, $departure_date, $return_date, 
+            $number_of_passengers, $total_price, $status, $notes, $itinerary_pdf = null, $passengers_info = null) {
+
+        // FIX: convert empty return dates to NULL
+        $return_date = empty($return_date) ? NULL : $return_date;
+
         $query = "UPDATE " . $this->table . " 
-                  SET departure_city = ?, arrival_city = ?, departure_date = ?, return_date = ?,
-                      number_of_passengers = ?, total_price = ?, status = ?, notes = ?, itinerary_pdf = ?, passengers_info = ?, last_updated = NOW()
-                  WHERE id = ?";
-        
+        SET departure_city = ?, arrival_city = ?, departure_date = ?, return_date = ?,
+        number_of_passengers = ?, total_price = ?, status = ?, notes = ?, itinerary_pdf = ?, passengers_info = ?, last_updated = NOW()
+        WHERE id = ?";
+
         $stmt = $this->conn->prepare($query);
 
         if (!$stmt) {
-            throw new Exception("Prepare failed: " . $this->conn->error);
+        throw new Exception("Prepare failed: " . $this->conn->error);
         }
 
-        $stmt->bind_param("ssssssidsssi", $departure_city, $arrival_city, $departure_date, $return_date,
-                         $number_of_passengers, $total_price, $status, $notes, $itinerary_pdf, $passengers_info, $id);
+        $stmt->bind_param(
+        "ssssidssssi",
+        $departure_city,
+        $arrival_city,
+        $departure_date,
+        $return_date,
+        $number_of_passengers,
+        $total_price,
+        $status,
+        $notes,
+        $itinerary_pdf,
+        $passengers_info,
+        $id
+        );
 
         if ($stmt->execute()) {
-            return $stmt->affected_rows > 0;
+        return $stmt->affected_rows > 0;
         } else {
-            throw new Exception("Update failed: " . $stmt->error);
+        throw new Exception("Update failed: " . $stmt->error);
         }
-    }
+        }
+
 
     /**
      * Delete booking

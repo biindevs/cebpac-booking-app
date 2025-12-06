@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="../../public/css/style.css">
 </head>
 <body class="d-flex flex-column min-vh-100">
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-light">
         <div class="container-fluid">
             <a class="navbar-brand fw-bold d-flex align-items-center" href="../../public/index.php">
                 <span class="navbar-logo me-2">✈</span>

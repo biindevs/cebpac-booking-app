@@ -95,6 +95,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_booking_id']))
                 <?php if (empty($bookings) || isset($bookings['error'])): ?>
                     <div class="alert alert-info">No bookings found for this account. <a href="../bookings/create.php?account_id=<?php echo $account['id']; ?>">Create one now</a></div>
                 <?php else: ?>
+                    <!-- Search Bar -->
+                    <div class="mb-3">
+                        <div class="input-group">
+                            <span class="input-group-text">🔍 Search Name</span>
+                            <input type="text" id="searchNameInput" class="form-control" placeholder="Enter passenger name (e.g., myrna)" onkeyup="filterBookingsByName()">
+                            <button class="btn btn-outline-secondary" type="button" onclick="clearSearch()">Clear</button>
+                        </div>
+                    </div>
+                    
                     <div class="table-responsive">
                         <table class="table table-hover table-striped align-middle">
                             <thead class="table-light">
@@ -108,9 +117,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_booking_id']))
                                     <th>Actions</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <?php foreach ($bookings as $booking): ?>
-                                <tr>
+                            <tbody id="bookingsTableBody">
+                                <?php foreach ($bookings as $booking): 
+                                    // Store passenger info as data attribute for JavaScript filtering
+                                    $passengers_data = !empty($booking['passengers_info']) ? htmlspecialchars($booking['passengers_info'], ENT_QUOTES, 'UTF-8') : '';
+                                ?>
+                                <tr data-passengers-info="<?php echo $passengers_data; ?>">
                                     <td><?php echo htmlspecialchars($booking['booking_reference']); ?></td>
                                     <td><?php echo htmlspecialchars($booking['departure_city']); ?> → <?php echo htmlspecialchars($booking['arrival_city']); ?></td>
                                     <td><?php echo date('M d, Y', strtotime($booking['departure_date'])); ?></td>
@@ -122,6 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_booking_id']))
                                         if ($booking['status'] === 'confirmed') $statusClass = 'bg-success';
                                         elseif ($booking['status'] === 'pending') $statusClass = 'bg-warning';
                                         elseif ($booking['status'] === 'cancelled') $statusClass = 'bg-danger';
+                                        elseif ($booking['status'] === 'completed') $statusClass = 'bg-primary';
                                         ?>
                                         <span class="badge <?php echo $statusClass; ?>"><?php echo ucfirst($booking['status']); ?></span>
                                     </td>
@@ -143,6 +156,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_booking_id']))
         </div>
     </div>
 </div>
+
+<script>
+function filterBookingsByName() {
+    const searchTerm = document.getElementById('searchNameInput').value.toLowerCase().trim();
+    const rows = document.querySelectorAll('#bookingsTableBody tr');
+    
+    if (searchTerm === '') {
+        // Show all rows if search is empty
+        rows.forEach(row => {
+            row.style.display = '';
+        });
+        return;
+    }
+    
+    rows.forEach(row => {
+        const passengersInfo = row.getAttribute('data-passengers-info');
+        let shouldShow = false;
+        
+        if (passengersInfo) {
+            try {
+                const passengers = JSON.parse(passengersInfo);
+                if (Array.isArray(passengers)) {
+                    // Check if any passenger's name matches the search term
+                    shouldShow = passengers.some(passenger => {
+                        const firstName = (passenger.first_name || '').toLowerCase();
+                        const lastName = (passenger.last_name || '').toLowerCase();
+                        const fullName = firstName + ' ' + lastName;
+                        return firstName.includes(searchTerm) || 
+                               lastName.includes(searchTerm) || 
+                               fullName.includes(searchTerm);
+                    });
+                }
+            } catch (e) {
+                // If JSON parsing fails, hide the row
+                console.error('Error parsing passenger info:', e);
+                shouldShow = false;
+            }
+        }
+        
+        row.style.display = shouldShow ? '' : 'none';
+    });
+}
+
+function clearSearch() {
+    document.getElementById('searchNameInput').value = '';
+    filterBookingsByName();
+}
+</script>
 
 <?php endif; ?>
 

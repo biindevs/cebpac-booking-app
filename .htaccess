@@ -1,6 +1,7 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /cebfuck/cebpac-booking-app/
+    # For Hostinger: Use / if app is in root, or /subfolder/ if in subfolder
+    RewriteBase /
     
     # Redirect root URL to public/index.php
     RewriteRule ^$ public/index.php [L]

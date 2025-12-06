@@ -1,4 +1,5 @@
 <?php
-header("Location: /cebfuck/cebpac-booking-app/views/accounts/index.php");
+// Redirect to accounts index
+header("Location: ../views/accounts/index.php");
 exit;
 ?>

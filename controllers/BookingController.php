@@ -14,6 +14,12 @@ class BookingController {
     public function __construct() {
         $this->booking = new Booking();
         $this->account = new Account();
+
+        try {
+            $this->booking->refreshCompletedStatuses();
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+        }
     }
 
     /**
@@ -106,8 +112,10 @@ class BookingController {
                 return ['error' => 'Price must be greater than 0'];
             }
 
-            // If status is confirmed, validate and deduct travel funds
-            if ($status === 'confirmed') {
+            $paidStatuses = ['confirmed', 'completed'];
+
+            // If status is paid, validate and deduct travel funds
+            if (in_array($status, $paidStatuses)) {
                 if ($account['travel_funds'] < $total_price) {
                     return ['error' => 'Insufficient travel funds. Required: ₱' . number_format($total_price, 2) . ', Available: ₱' . number_format($account['travel_funds'], 2)];
                 }
@@ -149,7 +157,11 @@ class BookingController {
             // Get account info for travel funds management
             $account = $this->account->getById($booking['account_id']);
             $old_status = $booking['status'];
-            $old_price = $booking['total_price'];
+            $old_price = floatval($booking['total_price']); // Convert to float for accurate comparison
+            $new_price = floatval($total_price); // Convert to float for accurate comparison
+            $paidStatuses = ['confirmed', 'completed'];
+            $oldWasPaid = in_array($old_status, $paidStatuses);
+            $newIsPaid = in_array($status, $paidStatuses);
 
             // Validate dates
             if (strtotime($departure_date) < time()) {
@@ -165,34 +177,41 @@ class BookingController {
                 return ['error' => 'Number of passengers must be at least 1'];
             }
 
-            if ($total_price <= 0) {
+            if ($new_price <= 0) {
                 return ['error' => 'Price must be greater than 0'];
             }
 
-            // Handle travel funds adjustments based on status/price changes
-            if ($old_status !== 'confirmed' && $status === 'confirmed') {
+            // Check if status or price actually changed (using small tolerance for floating point comparison)
+            $statusChanged = ($old_status !== $status);
+            $priceChanged = abs($old_price - $new_price) > 0.01; // Use 0.01 tolerance for floating point comparison
+
+            // Only adjust travel funds if there's an actual change in status or price
+            if ($statusChanged || $priceChanged) {
+            if (!$oldWasPaid && $newIsPaid) {
                 // pending/cancelled → confirmed: deduct new amount
-                if ($account['travel_funds'] < $total_price) {
-                    return ['error' => 'Insufficient travel funds. Required: ₱' . number_format($total_price, 2) . ', Available: ₱' . number_format($account['travel_funds'], 2)];
+                    if ($account['travel_funds'] < $new_price) {
+                        return ['error' => 'Insufficient travel funds. Required: ₱' . number_format($new_price, 2) . ', Available: ₱' . number_format($account['travel_funds'], 2)];
                 }
-                $this->account->deductTravelFunds($booking['account_id'], $total_price);
-            } elseif ($old_status === 'confirmed' && $status !== 'confirmed') {
+                    $this->account->deductTravelFunds($booking['account_id'], $new_price);
+            } elseif ($oldWasPaid && !$newIsPaid) {
                 // confirmed → pending/cancelled: refund old amount
                 $this->account->addTravelFunds($booking['account_id'], $old_price);
-            } elseif ($old_status === 'confirmed' && $status === 'confirmed' && $old_price != $total_price) {
+                } elseif ($oldWasPaid && $newIsPaid && $priceChanged) {
                 // confirmed → confirmed with price change: adjust difference
-                $difference = $total_price - $old_price;
-                if ($difference > 0) {
+                    $difference = $new_price - $old_price;
+                    if ($difference > 0.01) {
                     // Price increased: deduct difference
                     if ($account['travel_funds'] < $difference) {
                         return ['error' => 'Insufficient travel funds for price increase. Required: ₱' . number_format($difference, 2) . ', Available: ₱' . number_format($account['travel_funds'], 2)];
                     }
                     $this->account->deductTravelFunds($booking['account_id'], $difference);
-                } else {
+                    } elseif ($difference < -0.01) {
                     // Price decreased: refund difference
                     $this->account->addTravelFunds($booking['account_id'], abs($difference));
+                    }
                 }
             }
+            // If status and price haven't changed, skip travel funds adjustment entirely
 
             $updated = $this->booking->update($id, $departure_city, $arrival_city, $departure_date,
                                              $return_date, $number_of_passengers, $total_price, $status, $notes, $itinerary_pdf, $passengers_info);
@@ -242,7 +261,7 @@ class BookingController {
      */
     public function getByStatus($status) {
         try {
-            $valid_statuses = ['confirmed', 'pending', 'cancelled'];
+            $valid_statuses = ['confirmed', 'pending', 'cancelled', 'completed'];
             if (!in_array($status, $valid_statuses)) {
                 return ['error' => 'Invalid status'];
             }
