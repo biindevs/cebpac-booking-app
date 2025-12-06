@@ -1,0 +1,23 @@
+{
+    "name": "cebpac/booking-app",
+    "description": "CebuPac Booking Management Application",
+    "type": "project",
+    "require": {
+        "php": "^8.0",
+        "firebase/php-jwt": "^6.11",
+        "google/apiclient": "^2.18"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
+
