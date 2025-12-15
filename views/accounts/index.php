@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id'])) {
     </div>
 </div>
 
-<div class="card card-custom">
+<div class="card card-custom mb-5">
     <div class="card-header bg-primary text-white">
         <h5 class="mb-0">Registered Accounts (<?php echo count($accounts); ?>)</h5>
     </div>
