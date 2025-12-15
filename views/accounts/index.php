@@ -1,9 +1,16 @@
 <?php 
 include "../templates/header.php"; 
 require_once '../../controllers/AccountController.php';
+require_once '../../models/Booking.php';
 
 $controller = new AccountController();
 $accounts = $controller->index();
+
+// Get flight statistics for the graph
+$bookingModel = new Booking();
+$flightStats = $bookingModel->getFlightStatistics();
+$completedCount = (int)$flightStats['completed_count'];
+$confirmedCount = (int)$flightStats['confirmed_count'];
 
 // Handle delete action
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id'])) {
@@ -33,6 +40,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id'])) {
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 <?php endif; ?>
+
+<!-- Flight Statistics Graph -->
+<div class="card card-custom mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Flight Statistics</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-8">
+                <canvas id="flightStatsChart" height="100"></canvas>
+            </div>
+            <div class="col-md-4 d-flex align-items-center">
+                <div class="w-100">
+                    <div class="mb-3 p-3 rounded" style="background: rgba(37, 99, 235, 0.1); border-left: 4px solid #2563eb;">
+                        <h6 class="mb-1 text-muted">Completed Flights</h6>
+                        <h3 class="mb-0" style="color: #2563eb;"><?php echo $completedCount; ?></h3>
+                    </div>
+                    <div class="p-3 rounded" style="background: rgba(22, 163, 74, 0.1); border-left: 4px solid #16a34a;">
+                        <h6 class="mb-1 text-muted">Confirmed Flights</h6>
+                        <h3 class="mb-0" style="color: #16a34a;"><?php echo $confirmedCount; ?></h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="card card-custom">
     <div class="card-header bg-primary text-white">
@@ -86,5 +119,82 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id'])) {
         <?php endif; ?>
     </div>
 </div>
+
+<script>
+// Flight Statistics Chart
+const ctx = document.getElementById('flightStatsChart');
+if (ctx) {
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Completed', 'Confirmed'],
+            datasets: [{
+                label: 'Number of Flights',
+                data: [<?php echo $completedCount; ?>, <?php echo $confirmedCount; ?>],
+                backgroundColor: [
+                    'rgba(37, 99, 235, 0.8)',
+                    'rgba(22, 163, 74, 0.8)'
+                ],
+                borderColor: [
+                    'rgba(37, 99, 235, 1)',
+                    'rgba(22, 163, 74, 1)'
+                ],
+                borderWidth: 2,
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    padding: 12,
+                    titleFont: {
+                        size: 14,
+                        weight: 'bold'
+                    },
+                    bodyFont: {
+                        size: 13
+                    },
+                    callbacks: {
+                        label: function(context) {
+                            return 'Flights: ' + context.parsed.y;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        font: {
+                            size: 12
+                        }
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    }
+                },
+                x: {
+                    ticks: {
+                        font: {
+                            size: 13,
+                            weight: '600'
+                        }
+                    },
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+}
+</script>
 
 <?php include "../templates/footer.php"; ?>

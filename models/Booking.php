@@ -319,6 +319,24 @@ class Booking {
 
         return $stmt->get_result();
     }
+
+    /**
+     * Get flight statistics (completed and confirmed counts)
+     */
+    public function getFlightStatistics() {
+        $query = "SELECT 
+                    SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed_count,
+                    SUM(CASE WHEN status = 'confirmed' THEN 1 ELSE 0 END) as confirmed_count
+                  FROM " . $this->table;
+        
+        $result = $this->conn->query($query);
+
+        if (!$result) {
+            throw new Exception("Query failed: " . $this->conn->error);
+        }
+
+        return $result->fetch_assoc();
+    }
 }
 
 ?>
